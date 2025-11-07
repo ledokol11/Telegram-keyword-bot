@@ -4,34 +4,24 @@ import asyncio
 import aiohttp
 from bs4 import BeautifulSoup
 
-API_TOKEN = "8536982635:AAE05Qmt5iwXdYvoCQQyjmZbvw9DW5yW9_I"
-YOUR_TELEGRAM_ID = 588843327  # твой числовой ID
+API_TOKEN = "YOUR_TOKEN_HERE"
+YOUR_TELEGRAM_ID = 123456789  # replace with your numeric Telegram ID
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# 🔍 Ключевые слова для поиска
-KEYWORDS = ["маникюр", "ногти"]
+# 🔍 Keywords to search for
+KEYWORDS = ["coffee", "sunset", "travel", "books", "music", "python", "art", "fitness"]
 
-# 📡 Список каналов
+# 📡 List of channels (replace with actual public channels if needed)
 CHANNELS = [
-    "https://t.me/anyadviceon",
-    "https://t.me/olyssblog",
-    "https://t.me/hirecomend",
-    "https://t.me/beautyzz",
-    "https://t.me/w1tch_nails",
-    "https://t.me/flacon_mag",
-    "https://t.me/beautyfuck",
-    "https://t.me/beautycash",
-    "https://t.me/beautysophia",
-    "https://t.me/berdovaalena",
-    "https://t.me/FashionGlo"
+    # Add channel links here, e.g. "https://t.me/channel_name"
 ]
 
-# Файл для хранения уже отправленных постов
+# File to store already sent posts
 SENT_FILE = "sent_posts.txt"
 
-# Загружаем уже отправленные ссылки
+# Load already sent posts
 try:
     with open(SENT_FILE, "r", encoding="utf-8") as f:
         sent_posts = set(f.read().splitlines())
@@ -58,13 +48,13 @@ async def check_channels():
                         post_text_tag = post.find("div", class_="tgme_widget_message_text")
                         post_text = post_text_tag.get_text(strip=True) if post_text_tag else ""
 
-                        # Проверяем ключевые слова
+                        # Check for keywords
                         if any(word.lower() in post_text.lower() for word in KEYWORDS):
-                            # Ищем картинки
+                            # Find photos
                             photo_tags = post.find_all("a", class_="tgme_widget_message_photo_wrap")
                             photos = [tag["href"] for tag in photo_tags if tag.get("href")]
 
-                            # Отправляем сообщение
+                            # Send message
                             try:
                                 if photos:
                                     media = [types.InputMediaPhoto(media=url) for url in photos]
@@ -74,23 +64,24 @@ async def check_channels():
                                 else:
                                     await bot.send_message(YOUR_TELEGRAM_ID, f"📩 {post_text}\n{post_url}")
                                 sent_posts.add(post_url)
-                                # Сохраняем ссылку в файл
+                                # Save post URL to file
                                 with open(SENT_FILE, "a", encoding="utf-8") as f:
                                     f.write(post_url + "\n")
                             except Exception as e:
-                                print(f"⚠️ Ошибка при отправке поста {post_url}: {e}")
+                                print(f"⚠️ Error sending post {post_url}: {e}")
 
             except Exception as e:
-                print(f"⚠️ Ошибка при обработке {channel_name}: {e}")
+                print(f"⚠️ Error processing {channel_name}: {e}")
 
 async def scheduler():
     while True:
         await check_channels()
-        await asyncio.sleep(3600)  # проверка каждый час
+        await asyncio.sleep(3600)  # check every hour
 
+# /start command
 @dp.message(Command(commands=["start"]))
 async def start_cmd(msg: types.Message):
-    await msg.answer("👋 Бот запущен! Буду искать слова 'маникюр' и 'ногти' в указанных каналах.")
+    await msg.answer("👋 Bot started! I will search for keywords in the specified channels.")
 
 async def main():
     asyncio.create_task(scheduler())
